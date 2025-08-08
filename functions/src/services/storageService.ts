@@ -87,18 +87,17 @@ export class StorageService {
    * @param {number} expiresInHours - 만료 시간 (시간 단위, 기본 24시간)
    * @return {Promise<string>} Signed URL 또는 Public URL
    */
-  async getSignedUrl(
-    fileName: string,
-    expiresInHours = 24
-  ): Promise<string> {
+  async getSignedUrl(fileName: string, expiresInHours = 24): Promise<string> {
     try {
       const file = this.bucket.file(fileName);
-      const expirationTime = Date.now() + (expiresInHours * 60 * 60 * 1000);
+      const expirationTime = Date.now() + expiresInHours * 60 * 60 * 1000;
 
+      console.log("file:", file);
       const [url] = await file.getSignedUrl({
         action: "read",
         expires: expirationTime,
       });
+      console.log("url:", url);
 
       return url;
     } catch (error) {
@@ -114,10 +113,7 @@ export class StorageService {
    * @param {number} expiresInHours - 만료 시간 (시간 단위)
    * @return {Promise<string[]>} 다운로드 링크 배열
    */
-  async getAllFileDownloadLinks(
-    folderName: string,
-    expiresInHours = 24
-  ): Promise<string[]> {
+  async getAllFileDownloadLinks(folderName: string, expiresInHours = 24): Promise<string[]> {
     const files = await this.getFiles(folderName);
     const links: string[] = [];
 

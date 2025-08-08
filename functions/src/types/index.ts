@@ -24,17 +24,19 @@ export interface EmployeeResult {
   total: number; // 사용가능 총 금액
   balance: number; // 잔액
   usedAmount: number; // 실제 사용 금액
+  downloadUrl: string; // 개별 파일 다운로드 URL
 }
 
 /**
  * API 응답 인터페이스
  */
 export interface CalculationResponse {
-  results: EmployeeResult[];
-  downloadLinks: string[];
+  results: EmployeeResult[]; // 각 객체에 downloadUrl 포함
   zipDownloadLink: string;
   folderName: string;
   processedFiles: number;
+  googleSheetsUpdated?: boolean; // Google Sheets 업데이트 성공 여부
+  googleSheetsError?: string; // Google Sheets 업데이트 에러 메시지
 }
 
 /**

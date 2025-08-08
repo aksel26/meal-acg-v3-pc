@@ -3,7 +3,7 @@
  */
 
 import * as XLSX from "xlsx";
-import { ExcelRowData, CalculationSettings } from "../types";
+import {ExcelRowData, CalculationSettings} from "../types";
 
 /**
  * Excel 서비스 클래스
@@ -21,7 +21,7 @@ export class ExcelService {
    * @return {XLSX.WorkBook} 워크북 객체
    */
   static readWorkbook(buffer: Buffer): XLSX.WorkBook {
-    return XLSX.read(buffer, { type: "buffer" });
+    return XLSX.read(buffer, {type: "buffer"});
   }
 
   /**
@@ -30,7 +30,10 @@ export class ExcelService {
    * @param {string} sheetName - 시트명 (기본: '내역')
    * @return {XLSX.WorkSheet | null} 워크시트 객체 또는 null
    */
-  static getWorksheet(workbook: XLSX.WorkBook, sheetName: string = ExcelService.DEFAULT_SETTINGS.sheetName): XLSX.WorkSheet | null {
+  static getWorksheet(
+    workbook: XLSX.WorkBook,
+    sheetName: string = ExcelService.DEFAULT_SETTINGS.sheetName
+  ): XLSX.WorkSheet | null {
     if (!workbook.Sheets[sheetName]) {
       return null;
     }
@@ -43,15 +46,18 @@ export class ExcelService {
    * @param {string} range - 데이터 범위 (기본: 'B3:L204')
    * @return {ExcelRowData[]} 구조화된 데이터 배열
    */
-  static extractData(worksheet: XLSX.WorkSheet, range: string = ExcelService.DEFAULT_SETTINGS.dataRange): ExcelRowData[] {
+  static extractData(
+    worksheet: XLSX.WorkSheet,
+    range: string = ExcelService.DEFAULT_SETTINGS.dataRange
+  ): ExcelRowData[] {
     console.log(`Excel 데이터 추출 시작 - 범위: ${range}`);
-    
+
     // 먼저 전체 시트를 JSON으로 변환해서 구조 확인
     const allData = XLSX.utils.sheet_to_json(worksheet, {
       header: 1,
       defval: "",
     }) as (string | number)[][];
-    
+
     console.log("전체 시트 데이터 샘플 (처음 5행):");
     allData.slice(0, 5).forEach((row, idx) => {
       console.log(`행 ${idx}:`, row);
@@ -76,7 +82,7 @@ export class ExcelService {
 
     for (let i = 0; i < jsonData.length; i++) {
       const row = jsonData[i];
-      
+
       // 빈 행 건너뛰기
       if (!row || row.length === 0) continue;
 

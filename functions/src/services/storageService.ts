@@ -3,6 +3,7 @@
  */
 
 import * as admin from "firebase-admin";
+import * as archiver from "archiver";
 import {StorageFileInfo} from "../types";
 import {isExcelFile} from "../utils/validationUtils";
 
@@ -134,5 +135,102 @@ export class StorageService {
     }
 
     return links;
+  }
+
+  /**
+   * 폴더를 ZIP 파일로 압축하고 다운로드 링크 반환
+   * @param {string} folderName - 폴더명
+   * @param {number} expiresInHours - 만료 시간 (시간 단위)
+   * @return {Promise<string>} ZIP 파일 다운로드 링크
+   */
+  async createFolderZip(folderName: string, expiresInHours = 24): Promise<string> {
+    try {
+      console.log(`폴더 ZIP 생성 시작: ${folderName}`);
+
+      // 폴더 내 파일 목록 조회
+      const files = await this.getFiles(folderName);
+
+      if (files.length === 0) {
+        throw new Error(`폴더 '${folderName}'에 파일이 없습니다.`);
+      }
+
+      console.log(`ZIP에 포함할 파일 수: ${files.length}`);
+
+      // ZIP 파일명 생성 (타임스탬프 포함으로 중복 방지)
+      const timestamp = Date.now();
+      const zipFileName = `temp/${folderName.replace(/ /g, "_")}_${timestamp}.zip`;
+
+      // ZIP 파일 생성을 위한 스트림 설정
+      const zipFile = this.bucket.file(zipFileName);
+      const zipStream = zipFile.createWriteStream({
+        metadata: {
+          contentType: "application/zip",
+        },
+      });
+
+      // archiver 설정
+      const archive = archiver.create("zip", {
+        zlib: {level: 9}, // 최대 압축
+      });
+
+      // 에러 처리
+      archive.on("error", (error: any) => {
+        console.error("Archive error:", error);
+        throw error;
+      });
+
+      // archive를 zipStream에 연결
+      archive.pipe(zipStream);
+
+      // 각 파일을 ZIP에 추가
+      for (const file of files) {
+        try {
+          console.log(`파일 추가 중: ${file.name}`);
+
+          // 파일 다운로드
+          const fileBuffer = await this.downloadFile(file.name);
+
+          // 파일명에서 폴더 경로 제거 (ZIP 내에서는 파일명만 사용)
+          const fileName = file.name.split("/").pop() || file.name;
+
+          // ZIP에 파일 추가
+          archive.append(fileBuffer, {name: fileName});
+        } catch (fileError) {
+          console.warn(`파일 추가 실패: ${file.name}`, fileError);
+          // 개별 파일 실패시에도 계속 진행
+        }
+      }
+
+      // ZIP 생성 완료
+      await new Promise<void>((resolve, reject) => {
+        zipStream.on("error", reject);
+        zipStream.on("finish", () => {
+          console.log("ZIP 파일 업로드 완료");
+          resolve();
+        });
+
+        archive.finalize();
+      });
+
+      console.log(`ZIP 파일 생성 완료: ${zipFileName}`);
+
+      // ZIP 파일의 다운로드 링크 생성
+      const zipDownloadUrl = await this.getSignedUrl(zipFileName, expiresInHours);
+
+      // 임시 ZIP 파일은 24시간 후 자동 삭제되도록 설정 (선택사항)
+      setTimeout(async () => {
+        try {
+          await this.bucket.file(zipFileName).delete();
+          console.log(`임시 ZIP 파일 삭제: ${zipFileName}`);
+        } catch (deleteError) {
+          console.warn(`임시 ZIP 파일 삭제 실패: ${zipFileName}`, deleteError);
+        }
+      }, 24 * 60 * 60 * 1000); // 24시간
+
+      return zipDownloadUrl;
+    } catch (error) {
+      console.error("ZIP 생성 중 에러:", error);
+      throw new Error(`폴더 ZIP 생성 실패: ${error}`);
+    }
   }
 }

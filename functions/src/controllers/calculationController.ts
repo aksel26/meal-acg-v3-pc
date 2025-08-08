@@ -169,7 +169,7 @@ export class CalculationController {
   }
 
   /**
-   * Storage 파일 목록 조회 엔드포인트
+   * 폴더 ZIP 다운로드 링크 생성 엔드포인트
    * @param {Request} request - Express 요청 객체
    * @param {Response} response - Express 응답 객체
    */
@@ -187,6 +187,9 @@ export class CalculationController {
       const {year, month} = validation as { year: number; month: number };
       const folderName = createFolderName(year, month);
 
+      console.log(`폴더 ZIP 생성 요청: ${folderName}`);
+
+      // 먼저 폴더에 파일이 있는지 확인
       const files = await this.storageService.getFiles(folderName);
 
       if (files.length === 0) {
@@ -196,15 +199,20 @@ export class CalculationController {
         return;
       }
 
+      // 폴더를 ZIP으로 압축하고 다운로드 링크 생성
+      const zipDownloadUrl = await this.storageService.createFolderZip(folderName);
+
       response.json({
         folderName,
-        files,
-        count: files.length,
+        zipDownloadUrl,
+        fileCount: files.length,
+        message: `${folderName} 폴더의 ${files.length}개 파일이 ZIP으로 압축되었습니다.`,
       });
     } catch (error) {
-      functions.logger.error("Storage 접근 에러:", error);
+      functions.logger.error("ZIP 생성 에러:", error);
       response.status(500).json({
-        error: "서버 에러가 발생했습니다.",
+        error: "ZIP 파일 생성 중 에러가 발생했습니다.",
+        details: error instanceof Error ? error.message : String(error),
       });
     }
   }

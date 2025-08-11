@@ -28,9 +28,9 @@ const calculationController = new CalculationController();
 /**
  * 급여 계산 함수
  * 쿼리 파라미터: sheetYear, sheetMonth
- * 예시: /calculateSalary?sheetYear=2025&sheetMonth=3
+ * 예시: /calculateBalance?sheetYear=2025&sheetMonth=3
  */
-export const calculateSalary = functions.https.onRequest(
+export const calculateBalance = functions.https.onRequest(
   async (request: Request, response: Response) => {
     await calculationController.calculate(request, response);
   }

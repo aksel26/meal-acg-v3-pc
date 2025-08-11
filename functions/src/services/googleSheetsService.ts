@@ -4,6 +4,7 @@
 
 import {google} from "googleapis";
 import {EmployeeResult} from "../types";
+import {cleanACGTemplateFileName} from "../utils/fileNameUtils";
 
 /**
  * Google Sheets 서비스 클래스
@@ -38,7 +39,7 @@ export class GoogleSheetsService {
     spreadsheetId: string
   ): Promise<void> {
     const lastRowIndex = Number(results.length) + 6;
-    const range = `${sheetYear}년 ${sheetMonth}월_TEST!A4:J${lastRowIndex}`;
+    const range = `${sheetYear}년 ${sheetMonth}월!A4:J${lastRowIndex}`;
 
     console.log("Google Sheets 업데이트 시작:", {
       spreadsheetId,
@@ -46,9 +47,10 @@ export class GoogleSheetsService {
       resultsCount: results.length,
     });
 
+
     const values = results.map((result, index) => [
       index + 1, // No.
-      result.name.replace(".xlsx", ""), // 이름
+      cleanACGTemplateFileName(result.name, sheetYear, sheetMonth), // 이름
       result.workDay, // 근무일
       result.holiday, // 휴일
       result.weekendWork, // 주말근무
@@ -166,7 +168,7 @@ export class GoogleSheetsService {
     sheetMonth: number,
     spreadsheetId: string
   ): Promise<void> {
-    const sheetName = `${sheetYear}년 ${sheetMonth}월_TEST`;
+    const sheetName = `${sheetYear}년 ${sheetMonth}월`;
     console.log("sheetName:", sheetName);
 
     console.log("spreadsheetId:", spreadsheetId);

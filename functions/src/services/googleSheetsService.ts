@@ -39,7 +39,7 @@ export class GoogleSheetsService {
     spreadsheetId: string
   ): Promise<void> {
     const lastRowIndex = Number(results.length) + 6;
-    const range = `${sheetYear}년 ${sheetMonth}월!A4:J${lastRowIndex}`;
+    const range = `${sheetYear}년 ${sheetMonth}월!A4:H${lastRowIndex},J4:J${lastRowIndex}`;
 
     console.log("Google Sheets 업데이트 시작:", {
       spreadsheetId,
@@ -61,7 +61,6 @@ export class GoogleSheetsService {
         result.total, // 총금액
         result.usedAmount, // 사용금액
         result.balance, // 잔여금액
-        "", // 정산여부
         `=HYPERLINK("${result.downloadUrl}", "엑셀파일 다운로드")`, // 다운로드 링크
       ];
     });

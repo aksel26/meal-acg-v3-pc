@@ -93,12 +93,10 @@ export class StorageService {
       const file = this.bucket.file(fileName);
       const expirationTime = Date.now() + expiresInHours * 60 * 60 * 1000;
 
-      console.log("file:", file);
       const [url] = await file.getSignedUrl({
         action: "read",
         expires: expirationTime,
       });
-      console.log("url:", url);
 
       return url;
     } catch (error) {

@@ -90,8 +90,7 @@ export class CalculationService {
     const balance = total - usedAmount;
 
 
-    const cleanedName = cleanACGTemplateFileName(employeeName, targetYear, targetMonth);
-    console.log(`cleanACGTemplateFileName 처리: "${employeeName}" -> "${cleanedName}"`);
+    const cleanedName = cleanACGTemplateFileName(employeeName);
 
     return {
       name: cleanedName,

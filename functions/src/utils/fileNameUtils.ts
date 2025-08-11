@@ -3,37 +3,23 @@
  */
 
 /**
- * 시트 연도와 월을 기준으로 ACG 템플릿 파일명 접두사 생성
- * @param {number} sheetYear - 연도 (2자리)
- * @param {number} sheetMonth - 월
- * @return {string} 템플릿 파일명 접두사
- */
-export function generateACGTemplatePrefix(sheetYear: number, sheetMonth: number): string {
-  const period = sheetMonth <= 6 ? "상반기" : "하반기";
-  return `ACG_식대 정리_Template_${sheetYear}년 ${period}_`;
-}
-
-/**
  * ACG 템플릿 파일명에서 사용자 이름 추출
  * @param {string} fileName - 파일명
- * @param {number} sheetYear - 연도
- * @param {number} sheetMonth - 월
  * @return {string} 추출된 사용자 이름
  */
-export function cleanACGTemplateFileName(fileName: string, sheetYear?: number, sheetMonth?: number): string {
+export function cleanACGTemplateFileName(fileName: string): string {
   let cleanedName = fileName;
 
   // 확장자 제거
   cleanedName = removeFileExtension(cleanedName);
 
-  // 템플릿 접두사 제거 (연도/월 정보가 있는 경우 동적으로, 없으면 기본값 사용)
-  if (sheetYear && sheetMonth) {
-    const templatePrefix = generateACGTemplatePrefix(sheetYear, sheetMonth);
-    cleanedName = cleanedName.replace(templatePrefix, "");
+  if (cleanedName) {
+    cleanedName = cleanedName.split("_").pop() || cleanedName;
   } else {
-    // 기본값으로 25년 하반기 사용 (하위 호환성)
-    cleanedName = cleanedName.replace("ACG_식대 정리_Template_25년 하반기_", "");
+    cleanedName = fileName;
   }
+  // 템플릿 접두사 제거 (연도/월 정보가 있는 경우 동적으로, 없으면 기본값 사용)
+
 
   return cleanedName;
 }

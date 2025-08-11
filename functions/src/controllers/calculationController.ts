@@ -49,11 +49,11 @@ export class CalculationController {
       // 폴더명 생성
       const folderName = createFolderName(year, month);
 
-      functions.logger.info(`Processing calculation for ${folderName}`, {
-        year,
-        month,
-        folderName,
-      });
+      // functions.logger.info(`Processing calculation for ${folderName}`, {
+      //   year,
+      //   month,
+      //   folderName,
+      // });
 
       // Storage에서 Excel 파일 목록 조회
       const excelFiles = await this.storageService.getExcelFiles(folderName);

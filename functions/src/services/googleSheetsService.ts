@@ -51,7 +51,7 @@ export class GoogleSheetsService {
     // const cleanedName = cleanACGTemplateFileName(employeeName, targetYear, targetMonth);
 
     const values = results.map((result, index) => {
-      const cleanedName = cleanACGTemplateFileName(result.name, sheetYear, sheetMonth); // 이름
+      const cleanedName = cleanACGTemplateFileName(result.name); // 이름
       return [
         index + 1, // No.
         cleanedName, // 이름

@@ -36,9 +36,7 @@ export class CalculationController {
     try {
       // 쿼리 파라미터 검증
       const sheetYear = request.query.sheetYear as string;
-      console.log("sheetYear:", sheetYear);
       const sheetMonth = request.query.sheetMonth as string;
-      console.log("sheetMonth:", sheetMonth);
 
       const validation = validateQueryParams(sheetYear, sheetMonth);
       if (!validation.isValid) {
@@ -50,7 +48,6 @@ export class CalculationController {
 
       // 폴더명 생성
       const folderName = createFolderName(year, month);
-      console.log("folderName:", folderName);
 
       functions.logger.info(`Processing calculation for ${folderName}`, {
         year,
@@ -60,7 +57,6 @@ export class CalculationController {
 
       // Storage에서 Excel 파일 목록 조회
       const excelFiles = await this.storageService.getExcelFiles(folderName);
-      console.log("excelFiles:", excelFiles);
 
       if (excelFiles.length === 0) {
         response.status(404).json({
@@ -75,14 +71,13 @@ export class CalculationController {
 
       for (const fileInfo of excelFiles) {
         try {
-          functions.logger.info(`Processing file: ${fileInfo.name}`);
+          // functions.logger.info(`Processing file: ${fileInfo.name}`);
 
           // 파일 다운로드
           const buffer = await this.storageService.downloadFile(fileInfo.name);
 
           // Excel 데이터 추출
           const excelData = ExcelService.processExcelFile(buffer);
-          console.log("excelData:", excelData);
 
           // 직원명 추출
           const employeeName = extractEmployeeName(fileInfo.name);
@@ -92,7 +87,7 @@ export class CalculationController {
           const downloadUrl = await this.storageService.getSignedUrl(fileInfo.name);
           downloadUrlMap.set(employeeName, downloadUrl);
         } catch (error) {
-          functions.logger.error(`Error processing file ${fileInfo.name}:`, error);
+          // functions.logger.error(`Error processing file ${fileInfo.name}:`, error);
           // 개별 파일 에러는 로그만 남기고 계속 진행
         }
       }
@@ -105,7 +100,7 @@ export class CalculationController {
       }
 
       // 전체 직원 계산 수행
-      const results = CalculationService.calculateAllEmployees(employeeDataMap, downloadUrlMap, month!);
+      const results = CalculationService.calculateAllEmployees(employeeDataMap, downloadUrlMap, year, month!);
 
       // ZIP 다운로드 링크 생성 (폴더 전체)
       let zipDownloadLink = "";
@@ -121,12 +116,12 @@ export class CalculationController {
 
       // Google Sheets 업데이트 시도
       const spreadsheetId = process.env.SPREADSHEET_ID;
-      console.log("spreadsheetId:", spreadsheetId);
       if (spreadsheetId && results.length > 0) {
         try {
           functions.logger.info("Google Sheets 업데이트 시작", {
             spreadsheetId,
             resultsCount: results.length,
+            employeeNames: results.map((r) => r.name),
           });
 
           await this.googleSheetsService.updateGoogleSheetWithAutoCreate(results, year, month, spreadsheetId);
@@ -135,7 +130,7 @@ export class CalculationController {
           functions.logger.info("Google Sheets 업데이트 성공");
         } catch (error) {
           googleSheetsError = error instanceof Error ? error.message : "Unknown error";
-          functions.logger.error("Google Sheets 업데이트 실패:", error);
+          // functions.logger.error("Google Sheets 업데이트 실패:", error);
         }
       } else if (!spreadsheetId) {
         functions.logger.warn("SPREADSHEET_ID 환경변수가 설정되지 않음");

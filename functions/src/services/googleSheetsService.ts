@@ -48,18 +48,23 @@ export class GoogleSheetsService {
     });
 
 
-    const values = results.map((result, index) => [
-      index + 1, // No.
-      cleanACGTemplateFileName(result.name, sheetYear, sheetMonth), // 이름
-      result.workDay, // 근무일
-      result.holiday, // 휴일
-      result.weekendWork, // 주말근무
-      result.total, // 총금액
-      result.usedAmount, // 사용금액
-      result.balance, // 잔여금액
-      "", // 정산여부
-      `=HYPERLINK("${result.downloadUrl}", "엑셀파일 다운로드")`, // 다운로드 링크
-    ]);
+    // const cleanedName = cleanACGTemplateFileName(employeeName, targetYear, targetMonth);
+
+    const values = results.map((result, index) => {
+      const cleanedName = cleanACGTemplateFileName(result.name, sheetYear, sheetMonth); // 이름
+      return [
+        index + 1, // No.
+        cleanedName, // 이름
+        result.workDay, // 근무일
+        result.holiday, // 휴일
+        result.weekendWork, // 주말근무
+        result.total, // 총금액
+        result.usedAmount, // 사용금액
+        result.balance, // 잔여금액
+        "", // 정산여부
+        `=HYPERLINK("${result.downloadUrl}", "엑셀파일 다운로드")`, // 다운로드 링크
+      ];
+    });
 
     console.log("업로드할 데이터 샘플:", values.slice(0, 2));
 

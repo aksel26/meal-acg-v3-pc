@@ -53,15 +53,6 @@ export class ExcelService {
     console.log(`Excel 데이터 추출 시작 - 범위: ${range}`);
 
     // 먼저 전체 시트를 JSON으로 변환해서 구조 확인
-    const allData = XLSX.utils.sheet_to_json(worksheet, {
-      header: 1,
-      defval: "",
-    }) as (string | number)[][];
-
-    console.log("전체 시트 데이터 샘플 (처음 5행):");
-    allData.slice(0, 5).forEach((row, idx) => {
-      console.log(`행 ${idx}:`, row);
-    });
 
     // 지정된 범위의 데이터 추출
     const jsonData = XLSX.utils.sheet_to_json(worksheet, {
@@ -69,14 +60,6 @@ export class ExcelService {
       header: 1,
       defval: "",
     }) as (string | number)[][];
-
-    console.log(`범위 ${range} 데이터 개수: ${jsonData.length}`);
-    if (jsonData.length > 0) {
-      console.log("범위 데이터 첫 3행:");
-      jsonData.slice(0, 3).forEach((row, idx) => {
-        console.log(`범위 행 ${idx}:`, row);
-      });
-    }
 
     const result: ExcelRowData[] = [];
 

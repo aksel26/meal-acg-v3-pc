@@ -112,7 +112,10 @@ export class StorageService {
    * @param {number} expiresInHours - 만료 시간 (시간 단위)
    * @return {Promise<string[]>} 다운로드 링크 배열
    */
-  async getAllFileDownloadLinks(folderName: string, expiresInHours = 24): Promise<string[]> {
+  async getAllFileDownloadLinks(
+    folderName: string,
+    expiresInHours = 24
+  ): Promise<string[]> {
     const files = await this.getFiles(folderName);
     const links: string[] = [];
 
@@ -127,7 +130,10 @@ export class StorageService {
           const publicUrl = this.getPublicUrl(file.name);
           links.push(publicUrl);
         } catch (fallbackError) {
-          console.error(`Failed to get public URL for ${file.name}:`, fallbackError);
+          console.error(
+            `Failed to get public URL for ${file.name}:`,
+            fallbackError
+          );
         }
       }
     }
@@ -141,7 +147,10 @@ export class StorageService {
    * @param {number} expiresInHours - 만료 시간 (시간 단위)
    * @return {Promise<string>} ZIP 파일 다운로드 링크
    */
-  async createFolderZip(folderName: string, expiresInHours = 24): Promise<string> {
+  async createFolderZip(
+    folderName: string,
+    expiresInHours = 24
+  ): Promise<string> {
     try {
       console.log(`폴더 ZIP 생성 시작: ${folderName}`);
 
@@ -156,7 +165,10 @@ export class StorageService {
 
       // ZIP 파일명 생성 (타임스탬프 포함으로 중복 방지)
       const timestamp = Date.now();
-      const zipFileName = `temp/${folderName.replace(/ /g, "_")}_${timestamp}.zip`;
+      const zipFileName = `temp/${folderName.replace(
+        / /g,
+        "_"
+      )}_${timestamp}.zip`;
 
       // ZIP 파일 생성을 위한 스트림 설정
       const zipFile = this.bucket.file(zipFileName);
@@ -213,7 +225,10 @@ export class StorageService {
       console.log(`ZIP 파일 생성 완료: ${zipFileName}`);
 
       // ZIP 파일의 다운로드 링크 생성
-      const zipDownloadUrl = await this.getSignedUrl(zipFileName, expiresInHours);
+      const zipDownloadUrl = await this.getSignedUrl(
+        zipFileName,
+        expiresInHours
+      );
 
       // 임시 ZIP 파일은 24시간 후 자동 삭제되도록 설정 (선택사항)
       setTimeout(async () => {

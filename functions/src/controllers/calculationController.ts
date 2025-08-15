@@ -77,7 +77,7 @@ export class CalculationController {
           const buffer = await this.storageService.downloadFile(fileInfo.name);
 
           // Excel 데이터 추출
-          const excelData = ExcelService.processExcelFile(buffer);
+          const excelData = await ExcelService.processExcelFile(buffer);
 
           // 직원명 추출
           const employeeName = extractEmployeeName(fileInfo.name);

@@ -10,13 +10,17 @@ import {CalculationController} from "./controllers/calculationController";
 // Firebase Admin 초기화
 if (!admin.apps.length) {
   try {
-    admin.initializeApp();
+    admin.initializeApp({
+      projectId: "acg-playground",
+      storageBucket: "acg-playground.firebasestorage.app",
+    });
     functions.logger.info("Firebase Admin SDK initialized successfully");
   } catch (error) {
     functions.logger.error("Firebase Admin SDK initialization error:", error);
     // 기본 설정으로 재시도
     admin.initializeApp({
-      projectId: process.env.GCLOUD_PROJECT || "acg-playground",
+      projectId: "acg-playground",
+      storageBucket: "acg-playground.firebasestorage.app",
     });
     functions.logger.info("Firebase Admin SDK initialized with basic config");
   }

@@ -2,7 +2,8 @@
  * Excel 파일 처리 서비스
  */
 
-import * as XLSX from "xlsx";
+import * as ExcelJS from "exceljs";
+import {Readable} from "stream";
 import {ExcelRowData, CalculationSettings} from "../types";
 
 /**
@@ -18,65 +19,69 @@ export class ExcelService {
   /**
    * Excel 파일 버퍼에서 워크북을 읽어옴
    * @param {Buffer} buffer - Excel 파일 버퍼
-   * @return {XLSX.WorkBook} 워크북 객체
+   * @return {Promise<ExcelJS.Workbook>} 워크북 객체
    */
-  static readWorkbook(buffer: Buffer): XLSX.WorkBook {
-    return XLSX.read(buffer, {type: "buffer"});
+  static async readWorkbook(buffer: Buffer): Promise<ExcelJS.Workbook> {
+    const workbook = new ExcelJS.Workbook();
+    // Convert Buffer to stream for ExcelJS
+    const stream = Readable.from(buffer);
+    await workbook.xlsx.read(stream);
+    return workbook;
   }
 
   /**
    * 워크북에서 지정된 시트를 가져옴
-   * @param {XLSX.WorkBook} workbook - 워크북 객체
+   * @param {ExcelJS.Workbook} workbook - 워크북 객체
    * @param {string} sheetName - 시트명 (기본: '내역')
-   * @return {XLSX.WorkSheet | null} 워크시트 객체 또는 null
+   * @return {ExcelJS.Worksheet | null} 워크시트 객체 또는 null
    */
   static getWorksheet(
-    workbook: XLSX.WorkBook,
+    workbook: ExcelJS.Workbook,
     sheetName: string = ExcelService.DEFAULT_SETTINGS.sheetName
-  ): XLSX.WorkSheet | null {
-    if (!workbook.Sheets[sheetName]) {
-      return null;
-    }
-    return workbook.Sheets[sheetName];
+  ): ExcelJS.Worksheet | null {
+    const worksheet = workbook.getWorksheet(sheetName);
+    return worksheet || null;
   }
 
   /**
    * 워크시트에서 데이터를 추출하여 구조화
-   * @param {XLSX.WorkSheet} worksheet - 워크시트 객체
+   * @param {ExcelJS.Worksheet} worksheet - 워크시트 객체
    * @param {string} range - 데이터 범위 (기본: 'B3:L204')
    * @return {ExcelRowData[]} 구조화된 데이터 배열
    */
   static extractData(
-    worksheet: XLSX.WorkSheet,
+    worksheet: ExcelJS.Worksheet,
     range: string = ExcelService.DEFAULT_SETTINGS.dataRange
   ): ExcelRowData[] {
     console.log(`Excel 데이터 추출 시작 - 범위: ${range}`);
 
-    // 먼저 전체 시트를 JSON으로 변환해서 구조 확인
-
-    // 지정된 범위의 데이터 추출
-    const jsonData = XLSX.utils.sheet_to_json(worksheet, {
-      range: range,
-      header: 1,
-      defval: "",
-    }) as (string | number)[][];
-
     const result: ExcelRowData[] = [];
 
-    for (let i = 0; i < jsonData.length; i++) {
-      const row = jsonData[i];
+    // 범위 파싱 (예: "B3:L204" -> {start: {col: 2, row: 3}, end: {col: 12, row: 204}})
+    const rangeMatch = range.match(/([A-Z]+)(\d+):([A-Z]+)(\d+)/);
+    if (!rangeMatch) {
+      throw new Error(`잘못된 범위 형식: ${range}`);
+    }
+
+    const startCol = this.columnToNumber(rangeMatch[1]); // B = 2
+    const startRow = parseInt(rangeMatch[2], 10); // 3
+    const endRow = parseInt(rangeMatch[4], 10); // 204
+
+    for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
+      const row = worksheet.getRow(rowIndex);
 
       // 빈 행 건너뛰기
-      if (!row || row.length === 0) continue;
+      if (!row || !row.values || (Array.isArray(row.values) && row.values.length <= 1)) continue;
 
-      const yearValue = row[0]; // B열 (인덱스 0)
-      const monthValue = row[1]; // C열 (인덱스 1)
-      const workTypeValue = row[4]; // F열 (인덱스 4)
-      const attendanceValue = row[6]; // H열 (인덱스 6)
-      const amountValue = row[8]; // J열 (인덱스 8)
+      const yearValue = row.getCell(startCol).value; // B열
+      const monthValue = row.getCell(startCol + 1).value; // C열
+      const workTypeValue = row.getCell(startCol + 4).value; // F열
+      const attendanceValue = row.getCell(startCol + 6).value; // H열
+      const amountValue = row.getCell(startCol + 8).value; // J열
 
       // 디버깅을 위한 상세 로깅
-      if (i < 3) {
+      if (rowIndex - startRow < 3) {
+        const i = rowIndex - startRow;
         console.log(`행 ${i} 상세 분석:`);
         console.log(`  B열(년도): '${yearValue}' (타입: ${typeof yearValue})`);
         console.log(`  C열(월): '${monthValue}' (타입: ${typeof monthValue})`);
@@ -87,8 +92,8 @@ export class ExcelService {
 
       // 필수 데이터가 없는 행 건너뛰기
       if (!yearValue || !monthValue) {
-        if (i < 10) {
-          console.log(`행 ${i} 건너뛰기: 년도(${yearValue}) 또는 월(${monthValue}) 없음`);
+        if (rowIndex - startRow < 10) {
+          console.log(`행 ${rowIndex - startRow} 건너뛰기: 년도(${yearValue}) 또는 월(${monthValue}) 없음`);
         }
         continue;
       }
@@ -98,7 +103,7 @@ export class ExcelService {
       const amount = parseFloat(String(amountValue || 0));
 
       if (isNaN(year) || isNaN(month)) {
-        console.log(`행 ${i} 건너뛰기: 년도(${year}) 또는 월(${month})이 숫자가 아님`);
+        console.log(`행 ${rowIndex - startRow} 건너뛰기: 년도(${year}) 또는 월(${month})이 숫자가 아님`);
         continue;
       }
 
@@ -123,14 +128,27 @@ export class ExcelService {
   }
 
   /**
+   * 엑셀 열 문자를 숫자로 변환 (A=1, B=2, ..., Z=26, AA=27, ...)
+   * @param {string} column - 열 문자 (예: "A", "B", "AA")
+   * @return {number} 열 번호
+   */
+  private static columnToNumber(column: string): number {
+    let result = 0;
+    for (let i = 0; i < column.length; i++) {
+      result = result * 26 + (column.charCodeAt(i) - 64);
+    }
+    return result;
+  }
+
+  /**
    * Excel 파일 전체 처리 파이프라인
    * @param {Buffer} buffer - Excel 파일 버퍼
    * @param {string} sheetName - 시트명
    * @param {string} range - 데이터 범위
-   * @return {ExcelRowData[]} 처리된 데이터
+   * @return {Promise<ExcelRowData[]>} 처리된 데이터
    */
-  static processExcelFile(buffer: Buffer, sheetName?: string, range?: string): ExcelRowData[] {
-    const workbook = this.readWorkbook(buffer);
+  static async processExcelFile(buffer: Buffer, sheetName?: string, range?: string): Promise<ExcelRowData[]> {
+    const workbook = await this.readWorkbook(buffer);
     const worksheet = this.getWorksheet(workbook, sheetName);
 
     if (!worksheet) {

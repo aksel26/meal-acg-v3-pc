@@ -39,7 +39,7 @@ export class GoogleSheetsService {
     spreadsheetId: string
   ): Promise<void> {
     const lastRowIndex = Number(results.length) + 6;
-    const range = `${sheetYear}년 ${sheetMonth}월!A4:H${lastRowIndex},J4:J${lastRowIndex}`;
+    const range = `${sheetYear}년 ${sheetMonth}월!A4:H${lastRowIndex}`;
 
     console.log("Google Sheets 업데이트 시작:", {
       spreadsheetId,

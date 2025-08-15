@@ -6,11 +6,13 @@ import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import {Request, Response} from "express";
 import {CalculationController} from "./controllers/calculationController";
+import * as serviceAccount from "../service-account-key.json";
 
 // Firebase Admin 초기화
 if (!admin.apps.length) {
   try {
     admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
       projectId: "acg-playground",
       storageBucket: "acg-playground.firebasestorage.app",
     });

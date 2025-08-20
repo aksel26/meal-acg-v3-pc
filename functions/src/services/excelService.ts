@@ -107,11 +107,29 @@ export class ExcelService {
         continue;
       }
 
+      // 셀 값이 객체인 경우 실제 값 추출
+      const getActualValue = (cellValue: unknown): string => {
+        if (cellValue === null || cellValue === undefined) return "";
+        if (typeof cellValue === "object" && cellValue !== null) {
+          const obj = cellValue as Record<string, unknown>;
+          if ("text" in obj && obj.text !== undefined) {
+            return String(obj.text);
+          }
+          if ("result" in obj && obj.result !== undefined) {
+            return String(obj.result);
+          }
+          if ("formula" in obj && obj.formula !== undefined) {
+            return String(obj.formula);
+          }
+        }
+        return String(cellValue);
+      };
+
       const rowData: ExcelRowData = {
         year,
         month,
-        workType: String(workTypeValue || ""),
-        attendance: String(attendanceValue || ""),
+        workType: getActualValue(workTypeValue),
+        attendance: getActualValue(attendanceValue),
         amount: isNaN(amount) ? 0 : amount,
       };
 

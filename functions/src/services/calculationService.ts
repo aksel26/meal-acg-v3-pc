@@ -60,14 +60,35 @@ export class CalculationService {
   }
 
   /**
+   * 특정 월의 '개별' 근태 개수 계산
+   * 조건: 근태(H열)에 '개별'이라는 단어가 포함된 경우
+   * @param {ExcelRowData[]} data - Excel 데이터
+   * @param {number} targetMonth - 대상 월
+   * @return {number} '개별' 근태 개수
+   */
+  static calculateIndividualCount(data: ExcelRowData[], targetMonth: number): number {
+    const individualCount = data.filter((row) =>
+      row.month === targetMonth && row.attendance.includes("개별"));
+    return individualCount.length;
+  }
+
+  /**
    * 사용가능 총 금액 계산
    * @param {number} workDays - 근무일 수
    * @param {number} weekendWork - 휴일근무 수
    * @param {number} holidays - 휴가일 수
+   * @param {number} individualCount - 개별 근태 개수
    * @return {number} 사용가능 총 금액
    */
-  static calculateTotalAmount(workDays: number, weekendWork: number, holidays: number): number {
-    return workDays * this.DAILY_AMOUNT + weekendWork * this.DAILY_AMOUNT - holidays * this.DAILY_AMOUNT;
+  static calculateTotalAmount(
+    workDays: number,
+    weekendWork: number,
+    holidays: number,
+    individualCount = 0
+  ): number {
+    const baseAmount = workDays * this.DAILY_AMOUNT + weekendWork * this.DAILY_AMOUNT - holidays * this.DAILY_AMOUNT;
+    const individualDeduction = individualCount * this.DAILY_AMOUNT;
+    return baseAmount - individualDeduction;
   }
 
   /**
@@ -85,8 +106,9 @@ export class CalculationService {
     const workDay = this.calculateWorkDays(data, targetMonth);
     const weekendWork = this.calculateWeekendWork(data, targetMonth);
     const holiday = this.calculateHolidays(data, targetMonth);
+    const individualCount = this.calculateIndividualCount(data, targetMonth);
     const usedAmount = this.calculateUsedAmount(data, targetMonth);
-    const total = this.calculateTotalAmount(workDay, weekendWork, holiday);
+    const total = this.calculateTotalAmount(workDay, weekendWork, holiday, individualCount);
     const balance = total - usedAmount;
 
 

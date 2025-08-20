@@ -17,10 +17,20 @@ export class GoogleSheetsService {
    */
   constructor() {
     // Firebase Functions에서는 Application Default Credentials 사용
-    const auth = new google.auth.GoogleAuth({
-      scopes: ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive.file"],
-    });
+    const authConfig: any = {
+      scopes: [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive.file",
+        "https://www.googleapis.com/auth/drive",
+      ],
+    };
 
+    // 로컬 환경에서는 서비스 계정 키 파일 사용
+    if (process.env.NODE_ENV !== "production") {
+      authConfig.keyFile = "./service-account-key.json";
+    }
+
+    const auth = new google.auth.GoogleAuth(authConfig);
     this.sheets = google.sheets({version: "v4", auth});
   }
 
@@ -39,7 +49,7 @@ export class GoogleSheetsService {
     spreadsheetId: string
   ): Promise<void> {
     const lastRowIndex = Number(results.length) + 6;
-    const range = `${sheetYear}년 ${sheetMonth}월!A4:H${lastRowIndex}`;
+    const range = `${sheetYear}년 ${sheetMonth}월!A4:I${lastRowIndex}`;
 
     console.log("Google Sheets 업데이트 시작:", {
       spreadsheetId,
@@ -99,6 +109,7 @@ export class GoogleSheetsService {
       });
 
       const sheets = response.data.sheets || [];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       return sheets.some((sheet: any) => sheet.properties?.title === sheetName);
     } catch (error) {
       console.error("시트 존재 확인 에러:", error);

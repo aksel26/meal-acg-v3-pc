@@ -119,6 +119,7 @@ export class CalculationService {
       workDay,
       holiday,
       weekendWork,
+      individualCount,
       total,
       balance,
       usedAmount,

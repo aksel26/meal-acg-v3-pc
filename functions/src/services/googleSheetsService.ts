@@ -49,7 +49,7 @@ export class GoogleSheetsService {
     spreadsheetId: string
   ): Promise<void> {
     const lastRowIndex = Number(results.length) + 6;
-    const range = `${sheetYear}년 ${sheetMonth}월!A4:I${lastRowIndex}`;
+    const range = `${sheetYear}년 ${sheetMonth}월!A4:K${lastRowIndex}`;
 
     console.log("Google Sheets 업데이트 시작:", {
       spreadsheetId,
@@ -68,6 +68,7 @@ export class GoogleSheetsService {
         result.workDay, // 근무일
         result.holiday, // 휴일
         result.weekendWork, // 주말근무
+        result.individualCount, // 개별식사
         result.total, // 총금액
         result.usedAmount, // 사용금액
         result.balance, // 잔여금액
@@ -157,11 +158,11 @@ export class GoogleSheetsService {
    * @return {Promise<void>}
    */
   private async addHeaders(spreadsheetId: string, sheetName: string): Promise<void> {
-    const headerValues = [["No.", "성명", "근무일", "휴일", "주말근무", "총금액", "사용금액", "잔여금액", "정산여부", "엑셀파일"]];
+    const headerValues = [["No.", "성명", "근무일", "휴일", "주말근무", "개별식사", "총금액", "사용금액", "잔여금액", "정산여부", "엑셀파일"]];
 
     await this.sheets.spreadsheets.values.update({
       spreadsheetId,
-      range: `${sheetName}!A3:J3`,
+      range: `${sheetName}!A3:K3`,
       resource: {values: headerValues},
       valueInputOption: "USER_ENTERED",
     });

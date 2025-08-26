@@ -21,6 +21,7 @@ export interface EmployeeResult {
   workDay: number; // 근무일 수
   holiday: number; // 휴가일 수
   weekendWork: number; // 휴일근무 수
+  individualCount: number; // 개별식사 수
   total: number; // 사용가능 총 금액
   balance: number; // 잔액
   usedAmount: number; // 실제 사용 금액

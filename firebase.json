@@ -10,6 +10,7 @@
         "firebase-debug.*.log",
         "*.local"
       ],
+      "memory": "512MB",
       "predeploy": [
         "npm --prefix \"$RESOURCE_DIR\" run lint",
         "npm --prefix \"$RESOURCE_DIR\" run build"

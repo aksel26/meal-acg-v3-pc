@@ -1,160 +1,168 @@
-# 🍽️ Meal ACG v3
+# 급식비 정산 시스템 (ACG Meal Service)
 
-> 스마트한 식비 관리를 위한 기업용 식대 관리 애플리케이션
+> Firebase Functions와 Google Sheets를 활용한 급식비 계산 및 정산 자동화 시스템
 
-## 📋 프로젝트 개요
+## 🎯 프로젝트 개요
 
-**Meal ACG v3**는 기업 구성원들의 식비를 체계적으로 관리하고 추적할 수 있는 모던 웹 애플리케이션입니다. PWA 지원으로 모바일에서도 네이티브 앱과 같은 경험을 제공합니다.
+급식 업체의 월별 급식비 정산 업무를 자동화하는 백엔드 서비스입니다. Excel 파일을 자동으로 처리하여 개별 식사 수를 계산하고, Google Sheets에 결과를 동기화합니다.
 
-### 🎯 주요 기능
+## 🛠 기술 스택
 
-- 📱 **PWA 지원** - 모바일 설치 및 오프라인 사용 가능
-- 🔐 **인증 시스템** - 안전한 로그인 및 사용자 관리
-- 📊 **대시보드** - 식비 현황 및 통계 시각화
-- 🍴 **식비 기록** - 일별/월별 식비 입력 및 관리
-- 👥 **점심조 관리** - 팀원들과 함께하는 점심 시간 관리
-- ☕ **음료 관리** - Monthly Meeting 음료비 추적
-- 📈 **포인트 시스템** - 식비 사용 내역 포인트화
+### Backend
+- **Runtime**: Node.js 22
+- **Framework**: Firebase Functions v2
+- **Language**: TypeScript (strict mode)
+- **Architecture**: Clean Architecture 적용
 
-## 🛠️ 기술 스택
+### APIs & Services
+- **Google Sheets API**: 계산 결과 자동 동기화
+- **Firebase Storage**: Excel 파일 관리 및 ZIP 압축
+- **ExcelJS**: Excel 파일 데이터 추출
 
-### Frontend
+### DevOps
+- **Cloud Platform**: Firebase (Google Cloud)
+- **CI/CD**: Firebase Deploy with ESLint validation
+- **Code Quality**: ESLint with Google Style Guide
 
-- **Next.js 15** - React 프레임워크 (App Router)
-- **React 19** - UI 라이브러리
-- **TypeScript** - 정적 타입 검사
-- **Tailwind CSS 4** - 유틸리티 기반 CSS 프레임워크
-- **Motion** - 애니메이션 라이브러리
-
-### State Management & Data Fetching
-
-- **Zustand** - 경량 상태 관리
-- **TanStack React Query** - 서버 상태 관리 및 캐싱
-
-### Backend Integration
-
-- **Firebase Admin SDK** - 백엔드 서비스
-- **Google APIs** - Drive, Sheets, Calendar 연동
-
-### Development Tools
-
-- **Turborepo** - 모노레포 관리
-- **pnpm** - 패키지 매니저
-- **ESLint** - 코드 품질 관리
-- **Prettier** - 코드 포매팅
-
-## 🏗️ 프로젝트 구조
+## 📂 프로젝트 구조
 
 ```
-meal-acg-v3/
-├── apps/
-│   └── user/                 # 메인 Next.js 애플리케이션
-│       ├── app/             # App Router 페이지
-│       ├── components/      # React 컴포넌트
-│       ├── hooks/          # 커스텀 React 훅
-│       ├── lib/            # 유틸리티 라이브러리
-│       └── stores/         # Zustand 스토어
-├── packages/
-│   ├── ui/                  # 공유 React 컴포넌트 라이브러리
-│   ├── utils/              # 공유 유틸리티 함수
-│   ├── eslint-config/      # ESLint 설정
-│   ├── typescript-config/  # TypeScript 설정
-│   └── tailwind-config/    # Tailwind CSS 설정
-└── docs/                   # 문서화
+├── firebase.json              # Firebase 설정
+├── .firebaserc               # 프로젝트 별칭 (acg-playground)
+└── functions/
+    ├── src/
+    │   ├── controllers/      # API 컨트롤러
+    │   │   └── calculationController.ts
+    │   ├── services/         # 비즈니스 로직
+    │   │   ├── calculationService.ts
+    │   │   ├── excelService.ts
+    │   │   ├── googleSheetsService.ts
+    │   │   └── storageService.ts
+    │   ├── utils/           # 유틸리티 함수
+    │   │   ├── dateUtils.ts
+    │   │   ├── fileNameUtils.ts
+    │   │   └── validationUtils.ts
+    │   ├── types/           # TypeScript 타입 정의
+    │   │   └── index.ts
+    │   └── index.ts         # Functions 엔트리포인트
+    └── lib/                 # 컴파일된 JavaScript (자동 생성)
 ```
 
-## 🚀 시작하기
+## 🚀 주요 기능
 
-### 요구사항
+### 1. 급식비 자동 계산 (`/calculateBalance`)
+- **입력**: 연도/월 파라미터 (`?sheetYear=2025&sheetMonth=3`)
+- **처리**: Firebase Storage에서 Excel 파일 자동 다운로드
+- **계산**: 개별 직원 식사 수 집계 및 급식비 계산
+- **출력**: Google Sheets 자동 업데이트 + JSON 응답
 
-- Node.js >= 18
-- pnpm (필수)
+### 2. 파일 관리 (`/getStorageFile`)
+- **압축**: 월별 Excel 파일들을 ZIP으로 자동 압축
+- **다운로드**: 압축 파일 다운로드 링크 생성
+- **관리**: 파일 개수 및 상태 정보 제공
+
+## 💻 개발 환경 설정
+
+### 필수 요구사항
+- Node.js 22+
+- Firebase CLI
+- Google Cloud 서비스 계정
 
 ### 설치 및 실행
-
 ```bash
 # 의존성 설치
-pnpm install
+cd functions && npm install
 
-# 개발 서버 시작
-pnpm dev
+# 개발 서버 시작 (로컬 에뮬레이터)
+npm run serve
 
-# 특정 앱만 실행
-pnpm dev:user
+# 코드 변경 감지 (개발용)
+npm run build:watch
 
-# 빌드
-pnpm build
+# 코드 품질 검사
+npm run lint
 
-# 타입 체크
-pnpm check-types
-
-# 린트
-pnpm lint
+# 프로덕션 배포
+npm run deploy
 ```
 
-### 환경 변수 설정
+## 🏗 아키텍처 설계
 
-다음 환경 변수들을 설정해야 합니다:
+### Clean Architecture 패턴
+- **Controllers**: HTTP 요청/응답 처리
+- **Services**: 핵심 비즈니스 로직
+- **Utils**: 공통 유틸리티 함수
+- **Types**: 타입 안전성 보장
 
-```env
-# Firebase
-FIREBASE_SERVICE_ACCOUNT_KEY=
-NEXT_PUBLIC_FIREBASE_*=
+### 에러 처리 전략
+- 파일별 개별 에러 처리로 시스템 안정성 확보
+- 상세한 로깅으로 디버깅 지원
+- 사용자 친화적 에러 메시지 제공
 
-# Google APIs
-GOOGLE_PRIVATE_KEY=
-GOOGLE_CLIENT_EMAIL=
-GOOGLE_SHEET_ID=
-GOOGLE_CALENDAR_API_KEY=
+## 📊 API 명세
 
-# Authentication
-NEXT_PUBLIC_AUTH_URL=
+### POST/GET `/calculateBalance`
+급식비 계산 및 Google Sheets 동기화
+
+**Parameters:**
+- `sheetYear`: 계산 연도 (예: 2025)
+- `sheetMonth`: 계산 월 (예: 3)
+
+**Response:**
+```json
+{
+  "results": [...],
+  "zipDownloadLink": "폴더 전체 다운로드: 5개 파일",
+  "folderName": "2025년 3월",
+  "processedFiles": 5,
+  "googleSheetsUpdated": true,
+  "googleSheetsError": null
+}
 ```
 
-## 🎨 주요 특징
+### GET `/getStorageFile`
+폴더 ZIP 압축 및 다운로드 링크 생성
 
-### 1. 모던한 UI/UX
+**Parameters:**
+- `sheetYear`: 대상 연도
+- `sheetMonth`: 대상 월
 
-- **반응형 디자인** - 모바일 퍼스트 접근
-- **애니메이션** - Motion 라이브러리를 활용한 부드러운 인터랙션
-- **컴포넌트 기반** - 재사용 가능한 UI 컴포넌트 라이브러리
+## 🔒 보안 고려사항
 
-### 2. 성능 최적화
+- Firebase 서비스 계정 키 관리
+- Google Sheets API 권한 제한
+- 파일 업로드 제한 및 검증
+- CORS 정책 적용
 
-- **Turbopack** - 빠른 개발 빌드
-- **React Query** - 효율적인 데이터 캐싱
-- **PWA** - 오프라인 지원 및 앱 설치
+## 📈 성능 최적화
 
-### 3. 개발자 경험
+- **메모리 관리**: 대용량 Excel 파일 스트리밍 처리
+- **동시 처리**: 다중 파일 병렬 처리
+- **캐싱**: Firebase Storage 다운로드 URL 캐싱
 
-- **모노레포** - Turborepo로 효율적인 워크스페이스 관리
-- **타입 안정성** - TypeScript 적용
-- **코드 품질** - ESLint + Prettier 자동화
+## 🧪 테스트 전략
 
-## 📱 주요 페이지
+- **Unit Test**: 개별 서비스 로직 테스트
+- **Integration Test**: Firebase Functions 통합 테스트
+- **E2E Test**: API 엔드포인트 완전 테스트
 
-- **로그인** (`/`) - 사용자 인증 및 온보딩
-- **대시보드** (`/dashboard`) - 식비 현황 및 통계
-- **점심조** (`/lunch`) - 팀별 점심 관리
-- **월별 현황** (`/monthly`) - 월간 식비 분석
-- **포인트** (`/points`) - 적립 포인트 관리
+## 🚀 배포 프로세스
 
-## 🔧 개발 가이드라인
+1. **코드 품질 검사**: `npm run lint`
+2. **TypeScript 컴파일**: `npm run build`
+3. **Firebase 배포**: `npm run deploy`
+4. **실시간 로그 모니터링**: `npm run logs`
 
-### 코드 스타일
-
-- **0 Warning Policy** - ESLint 경고 0개 유지
-- **Strict TypeScript** - 엄격한 타입 체크
-- **Component Driven** - 재사용 가능한 컴포넌트 설계
+### 코딩 컨벤션
+- Google TypeScript Style Guide 준수
+- ESLint 규칙 엄격 적용
+- 한글 주석으로 코드 가독성 향상
 
 ### 커밋 컨벤션
-
-- feat: 새로운 기능 추가
-- fix: 버그 수정
-- refactor: 코드 리팩토링
-- style: 스타일 변경
-- docs: 문서 수정
-
----
-
-_Built with ❤️ using Next.js, TypeScript, and Tailwind CSS_
+```
+feat: 새로운 기능 추가
+fix: 버그 수정
+docs: 문서 수정
+refactor: 코드 리팩토링
+test: 테스트 추가
+```
